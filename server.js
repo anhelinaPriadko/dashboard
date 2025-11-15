@@ -74,6 +74,12 @@ io.on('connection', (socket) => {
     io.to(board).emit('clear_board');
   });
 
+  socket.on('save_snapshot', (data) => {
+    const board = (data && data.board) || 'default';
+    const result = saveSnapshotToFile(board);
+    socket.emit('save_snapshot_result', result);
+  });
+  
   socket.on('save_snapshot_result', (result) => {
   if (result.ok) {
     setStatus('Snapshot saved.');
@@ -103,15 +109,6 @@ function saveSnapshotToFile(board) {
     return { ok: false, error: err.message };
   }
 }
-
-io.on('connection', (socket) => {
-  socket.on('save_snapshot', (data) => {
-    const board = (data && data.board) || 'default';
-    const result = saveSnapshotToFile(board);
-    socket.emit('save_snapshot_result', result);
-  });
-
-});
 
 
 const PORT = process.env.PORT || 3000;

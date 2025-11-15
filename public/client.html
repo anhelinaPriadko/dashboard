@@ -1,120 +1,43 @@
-<!-- client.html -->
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <title>Shared Whiteboard - Simple</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 12px; }
-    #canvas { border:1px solid #333; touch-action:none; cursor: crosshair; }
-    #controls { margin-bottom: 8px; }
-  </style>
+<meta charset="utf-8" />
+<title>Shared Whiteboard - Simple</title>
+<link rel="stylesheet" href="/client.css">
 </head>
 <body>
-  <h3>Shared Whiteboard (MVP)</h3>
-  <div id="controls">
-    Board ID: <input id="board" value="default" />
-    <button id="join">Join</button>
-    <button id="clear">Clear</button>
-    <button id="save">Save Snapshot</button>
-    <label>Color: <input id="color" type="color" value="#000000"></label>
-    <label>Width: <input id="width" type="number" value="2" min="1" max="20" style="width:60px"></label>
-    <span id="status"></span>
-  </div>
+<div class="app">
+<header>
+<h1>Shared Whiteboard (MVP)</h1>
+<div class="controls">
+<label>Board ID: <input id="board" value="default" /></label>
+<button id="join">Join</button>
+<button id="clear">Clear</button>
+<button id="save">Save Snapshot</button>
+<label>Color: <input id="color" type="color" value="#000000"></label>
+<label>Width: <input id="width" type="number" value="2" min="1" max="40"></label>
+<span id="status" class="status"></span>
+</div>
+</header>
 
-  <canvas id="canvas" width="1000" height="600"></canvas>
 
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <script>
-    const SERVER = 'http://localhost:3000'; // змінити при потребі
-    const socket = io(SERVER);
+<main>
+<div class="canvas-wrap">
+<canvas id="canvas"></canvas>
+</div>
+<aside class="info">
+<p><strong>Tips:</strong> натисни <em>Join</em>, потім малюй. Відкрий іншу вкладку з тим самим Board ID, щоб перевірити синхронізацію.</p>
+</aside>
+</main>
 
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const boardInput = document.getElementById('board');
-    const joinBtn = document.getElementById('join');
-    const clearBtn = document.getElementById('clear');
-    const saveBtn = document.getElementById('save');
-    const status = document.getElementById('status');
-    const colorInput = document.getElementById('color');
-    const widthInput = document.getElementById('width');
 
-    let drawing = false;
-    let last = null;
-    let board = 'default';
+<footer>
+<small>Server: <span id="server-url">http://localhost:3000</span></small>
+</footer>
+</div>
 
-    function setStatus(text) { status.textContent = text; }
 
-    function drawLine(x1,y1,x2,y2, strokeStyle, lineWidth) {
-      ctx.strokeStyle = strokeStyle || '#000';
-      ctx.lineWidth = lineWidth || 2;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.stroke();
-    }
-
-    // pointer events for mouse+touch
-    canvas.addEventListener('pointerdown', (e)=>{
-      drawing = true;
-      last = {x: e.offsetX, y: e.offsetY};
-    });
-    canvas.addEventListener('pointerup', ()=> { drawing = false; last = null; });
-    canvas.addEventListener('pointerout', ()=> { drawing = false; last = null; });
-    canvas.addEventListener('pointermove', (e)=>{
-      if(!drawing) return;
-      const cur = {x: e.offsetX, y: e.offsetY};
-      const color = colorInput.value;
-      const w = parseInt(widthInput.value, 10) || 2;
-      drawLine(last.x, last.y, cur.x, cur.y, color, w);
-      socket.emit('draw_op', { board, op: { type:'line', x1:last.x, y1:last.y, x2:cur.x, y2:cur.y, color, width: w } });
-      last = cur;
-    });
-
-    joinBtn.onclick = () => {
-      board = boardInput.value || 'default';
-      socket.emit('join_board', { board });
-      setStatus(`Joined ${board}`);
-      fetch(`${SERVER}/snapshot/${encodeURIComponent(board)}`)
-        .then(r => r.json())
-        .then(ops => {
-          ctx.clearRect(0,0,canvas.width,canvas.height);
-          ops.forEach(op=>{
-            if(op.type === 'line') drawLine(op.x1, op.y1, op.x2, op.y2, op.color, op.width);
-          });
-        }).catch(()=>{});
-    };
-
-    clearBtn.onclick = () => {
-      socket.emit('clear_board', { board });
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-    };
-
-    saveBtn.onclick = () => {
-      socket.emit('save_snapshot', { board });
-      setStatus('Snapshot saved.');
-      setTimeout(()=> setStatus(''), 1500);
-    };
-
-    socket.on('draw_op', (op) => {
-      if(op.type === 'line') drawLine(op.x1, op.y1, op.x2, op.y2, op.color, op.width);
-    });
-
-    socket.on('snapshot', (ops) => {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      ops.forEach(op=>{
-        if(op.type === 'line') drawLine(op.x1, op.y1, op.x2, op.y2, op.color, op.width);
-      });
-    });
-
-    socket.on('clear_board', ()=>{
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-    });
-
-    window.addEventListener('load', ()=> {
-      joinBtn.click();
-    });
-  </script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/client.js"></script>
 </body>
 </html>
