@@ -18,31 +18,25 @@
 
   let drawing = false;
   let last = null;
-  let board = null; // не приєднано
+  let board = null;
 
-  // Налаштування canvas: встановлюємо внутрішній розмір у device pixels
   function resizeCanvas(){
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
     const cssW = Math.floor(rect.width);
     const cssH = Math.floor(rect.height);
 
-    // встановлюємо видимі розміри (CSS)
     canvas.style.width = cssW + 'px';
     canvas.style.height = cssH + 'px';
 
-    // встановлюємо внутрішній розмір у фізичних пікселях
     canvas.width = Math.max(1, Math.floor(cssW * dpr));
     canvas.height = Math.max(1, Math.floor(cssH * dpr));
 
-    // Встановлюємо трансформ, щоб малювати у CSS-пікселях (з урахуванням DPR)
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.lineCap = 'round';
   }
 
-  // Просте очищення полотна з правильним використанням трансформації
   function clearCanvas(){
-    // зберегти стан, скинути трансформ, очистити фізичні пікселі, відновити
     ctx.save();
     ctx.setTransform(1,0,0,1,0,0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -50,7 +44,6 @@
   }
 
   window.addEventListener('resize', resizeCanvas);
-  // викличемо на старті
   resizeCanvas();
 
   function setStatus(msg, color){
@@ -59,7 +52,6 @@
   }
 
   function drawLine(x1,y1,x2,y2, strokeStyle, lineWidth){
-    // тут координати в CSS-пікселях — ctx вже підлаштований через setTransform
     ctx.strokeStyle = strokeStyle || '#000';
     ctx.lineWidth = lineWidth || 2;
     ctx.beginPath();
@@ -76,7 +68,6 @@
     return true;
   }
 
-  // pointer events: використовуємо offsetX/offsetY — це дає координати відносно canvas у CSS px
   canvas.addEventListener('pointerdown', (e)=>{
     if(!ensureJoined()) return;
     drawing = true;
@@ -89,14 +80,11 @@
     const cur = { x: e.offsetX, y: e.offsetY };
     const color = colorInput.value;
     const w = parseInt(widthInput.value, 10) || 2;
-    // малюємо локально
     drawLine(last.x, last.y, cur.x, cur.y, color, w);
-    // відправляємо подію на сервер (координати в CSS px)
     socket.emit('draw_op', { board, op: { type:'line', x1:last.x, y1:last.y, x2:cur.x, y2:cur.y, color, width: w } });
     last = cur;
   });
 
-  // Join logic
   joinBtn.addEventListener('click', ()=>{
     const b = (boardInput.value || '').trim();
     if(!b){ setStatus('Enter board id', 'crimson'); return; }
@@ -108,7 +96,7 @@
       .then(r=>r.json())
       .then(ops=>{
         clearCanvas();
-        // ops координати в CSS px — малюємо прямо
+
         ops.forEach(op => {
           if(op.type === 'line') drawLine(op.x1, op.y1, op.x2, op.y2, op.color, op.width);
         });

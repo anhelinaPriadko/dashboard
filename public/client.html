@@ -1,43 +1,49 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-<head>
-<meta charset="utf-8" />
-<title>Shared Whiteboard - Simple</title>
-<link rel="stylesheet" href="/client.css">
-</head>
-<body>
-<div class="app">
-<header>
-<h1>Shared Whiteboard (MVP)</h1>
-<div class="controls">
-<label>Board ID: <input id="board" value="default" /></label>
-<button id="join">Join</button>
-<button id="clear">Clear</button>
-<button id="save">Save Snapshot</button>
-<label>Color: <input id="color" type="color" value="#000000"></label>
-<label>Width: <input id="width" type="number" value="2" min="1" max="40"></label>
-<span id="status" class="status"></span>
-</div>
-</header>
+  <head>
+    <meta charset="utf-8" />
+    <title>Shared Whiteboard - Simple</title>
+    <link rel="stylesheet" href="/client.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <h1>Shared Whiteboard (MVP)</h1>
+        <div class="controls">
+          <label>Board ID: <input id="board" value="default" /></label>
+          <button id="join">Join</button>
+          <button id="clear">Clear</button>
+          <button id="save">Save Snapshot</button>
+          <label
+            >Color: <input id="color" type="color" value="#000000"
+          /></label>
+          <label
+            >Width: <input id="width" type="number" value="2" min="1" max="40"
+          /></label>
+          <span id="status" class="status"></span>
+        </div>
+      </header>
 
+      <main>
+        <div class="canvas-wrap">
+          <canvas id="canvas"></canvas>
+        </div>
+        <aside class="info">
+          <p>
+            <strong>Tips:</strong> натисни <em>Join</em>, потім малюй. Відкрий
+            іншу вкладку з тим самим Board ID, щоб перевірити синхронізацію.
+          </p>
+        </aside>
+      </main>
 
-<main>
-<div class="canvas-wrap">
-<canvas id="canvas"></canvas>
-</div>
-<aside class="info">
-<p><strong>Tips:</strong> натисни <em>Join</em>, потім малюй. Відкрий іншу вкладку з тим самим Board ID, щоб перевірити синхронізацію.</p>
-</aside>
-</main>
+      <footer>
+        <small
+          >Server: <span id="server-url">http://localhost:3000</span></small
+        >
+      </footer>
+    </div>
 
-
-<footer>
-<small>Server: <span id="server-url">http://localhost:3000</span></small>
-</footer>
-</div>
-
-
-<script src="/socket.io/socket.io.js"></script>
-<script src="/client.js"></script>
-</body>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/client.js"></script>
+  </body>
 </html>
